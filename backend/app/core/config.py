@@ -1,7 +1,8 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", hide_input_in_errors=True)
     PROJECT_NAME: str = "DrowsyGuard Pro"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str
@@ -17,8 +18,5 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: Optional[str] = None
     TWILIO_AUTH_TOKEN: Optional[str] = None
     TWILIO_PHONE_NUMBER: Optional[str] = None
-
-    class Config:
-        env_file = ".env"
 
 settings = Settings()
