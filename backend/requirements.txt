@@ -9,9 +9,8 @@ python-jose[cryptography]
 passlib[bcrypt]
 websockets
 opencv-python-headless
-mediapipe
-ultralytics
-numpy
-influxdb-client
+mediapipe==0.10.13
+numpy<2
 python-dotenv
 aiofiles
+email-validator
