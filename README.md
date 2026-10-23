@@ -57,7 +57,7 @@ Set `EXPO_PUBLIC_API_URL` in `mobile/.env` to the backend's reachable HTTP(S) UR
 
 ### Render backend
 
-The root `Dockerfile` builds the backend web service. Keep the Docker context as `.` and Dockerfile path as `./Dockerfile`. Configure `DATABASE_URL` for a reachable PostgreSQL database and set a unique `SECRET_KEY` in Render's environment settings. The backend will not start if its configured database cannot be reached. Check `/health` and `/docs` after deployment. The web dashboard requires a separate static site deployment from `web/`.
+The root `Dockerfile` builds the React dashboard and the FastAPI backend into one Render web service. Keep the Docker context as `.` and Dockerfile path as `./Dockerfile`. Configure `DATABASE_URL` for a reachable PostgreSQL database and set a unique `SECRET_KEY` in Render's environment settings. The backend will not start if its configured database cannot be reached. Open the service root for the dashboard, `/health` for the database-backed health check, and `/docs` for the API documentation. The dashboard currently shows sample driver data and is not connected to live API data.
 
 ## API Documentation
 Once the backend is running, visit `http://localhost:8000/docs` for the full Swagger documentation.
