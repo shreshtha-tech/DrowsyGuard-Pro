@@ -28,14 +28,14 @@ const DriverCard = ({ driver }: { driver: Driver }) => {
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-lg hover:border-indigo-500/50 transition-all">
+    <div className="rounded-xl border border-gray-700 bg-gray-800 p-4 shadow-lg transition-all hover:border-indigo-500/50 sm:p-6">
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <div className="p-2 bg-gray-900 rounded-lg">
             {getShieldIcon(driver.status)}
           </div>
           <div>
-            <h3 className="font-bold text-lg">{driver.name}</h3>
+            <h3 className="truncate text-lg font-bold">{driver.name}</h3>
             <span className={`text-xs px-2 py-0.5 rounded-full font-semibold uppercase ${getStatusColor(driver.status)}`}>
               {driver.status}
             </span>
@@ -64,16 +64,16 @@ const DriverCard = ({ driver }: { driver: Driver }) => {
           </div>
         </div>
         
-        <div className="flex justify-between items-center text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm">
           <span className="text-gray-400">Current Location</span>
-          <span className="text-gray-300 font-medium truncate ml-4">{driver.location}</span>
+          <span className="min-w-0 break-words text-right font-medium text-gray-300">{driver.location}</span>
         </div>
         
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <button className="bg-gray-700 hover:bg-gray-600 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button className="min-h-11 rounded-lg bg-gray-700 py-2 text-sm font-medium transition-colors hover:bg-gray-600">
             Contact
           </button>
-          <button className="bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button className="min-h-11 rounded-lg bg-indigo-600 py-2 text-sm font-medium transition-colors hover:bg-indigo-700">
             View Live
           </button>
         </div>
