@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic
+pydantic-settings
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+websockets
+opencv-python-headless
+mediapipe
+ultralytics
+numpy
+influxdb-client
+python-dotenv
+aiofiles
