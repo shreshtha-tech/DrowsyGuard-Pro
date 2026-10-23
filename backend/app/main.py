@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from app.api.endpoints import auth, detection
 from app.db.base_class import Base
 from app.db.session import engine
@@ -30,6 +32,11 @@ async def root():
 
 @app.get("/health")
 async def health_check():
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     return {"status": "healthy"}
 
 if __name__ == "__main__":

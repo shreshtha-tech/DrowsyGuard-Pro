@@ -12,16 +12,14 @@ router = APIRouter()
 def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     user = db.query(User).filter(User.email == user_in.email).first()
     if user:
-        # For demo purposes, we'll just return the existing user if it exists
-        # In a real app, this should be an error
-        return user
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
     
     hashed_password = security.get_password_hash(user_in.password)
     db_user = User(
         email=user_in.email,
         hashed_password=hashed_password,
         full_name=user_in.full_name,
-        role=user_in.role
+        role="driver"
     )
     db.add(db_user)
     db.commit()
@@ -31,7 +29,7 @@ def register(user_in: UserCreate, db: Session = Depends(deps.get_db)):
 @router.post("/login", response_model=Token)
 def login(db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
+    if not user or not user.is_active or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",

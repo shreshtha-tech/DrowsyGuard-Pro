@@ -5,7 +5,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     full_name: str
-    role: str = "driver"
 
 class UserOut(BaseModel):
     id: int

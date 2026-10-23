@@ -1,114 +1,114 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import { Camera } from 'expo-camera';
-import { PhoneCall } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
+import { Button, StyleSheet, Text, View } from 'react-native';
 import AlertOverlay from '../components/AlertOverlay';
 
-const LiveDetection = () => {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [results, setResults] = useState<any>(null);
-  const cameraRef = useRef<any>(null);
-  const ws = useRef<WebSocket | null>(null);
-  const [location, setLocation] = useState<any>(null);
+interface DetectionResult {
+  face_detected: boolean;
+  fatigue_score: number;
+  alert_stage: number;
+  ear: number;
+  mar: number;
+  eyes_closed_duration: number;
+}
+
+interface Coordinates { lat: number; lng: number }
+
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+const streamUrl = apiUrl?.replace(/^http/, 'ws').replace(/\/$/, '') + '/api/detect/stream';
+
+export default function LiveDetection() {
+  const [permission, requestPermission] = useCameraPermissions();
+  const [connection, setConnection] = useState('Connecting');
+  const [results, setResults] = useState<DetectionResult | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const locationRef = useRef<Coordinates | null>(null);
+  const capturingRef = useRef(false);
 
   useEffect(() => {
-    (async () => {
-      const { status: camStatus } = await Camera.requestCameraPermissionsAsync();
-      const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
-      setHasPermission(camStatus === 'granted');
-      if (locStatus === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        setLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+    if (!apiUrl) {
+      setConnection('Set EXPO_PUBLIC_API_URL to your API address');
+      return;
+    }
+    const socket = new WebSocket(streamUrl);
+    socketRef.current = socket;
+    socket.onopen = () => setConnection('Connected');
+    socket.onclose = () => setConnection('Disconnected');
+    socket.onerror = () => setConnection('Connection failed');
+    socket.onmessage = event => {
+      try {
+        const result = JSON.parse(event.data) as DetectionResult & { error?: string };
+        if (result.error) setConnection(result.error);
+        else setResults(result);
+      } catch {
+        setConnection('Invalid response from API');
       }
-    })();
-
-    // Initialize WebSocket
-    ws.current = new WebSocket('ws://127.0.0.1:8000/api/detect/stream');
-    ws.current.onmessage = (e) => {
-      setResults(JSON.parse(e.data));
     };
-    ws.current.onerror = (e) => console.log('WS Error:', e);
-
-    return () => ws.current?.close();
+    Location.requestForegroundPermissionsAsync()
+      .then(async response => {
+        if (response.status === 'granted') {
+          const position = await Location.getCurrentPositionAsync({});
+          locationRef.current = { lat: position.coords.latitude, lng: position.coords.longitude };
+        }
+      })
+      .catch(() => { /* Detection can continue without location. */ });
+    return () => {
+      socket.close();
+      socketRef.current = null;
+    };
   }, []);
 
-  // Capture and send frames
   useEffect(() => {
+    if (!permission?.granted) return;
     const interval = setInterval(async () => {
-      if (cameraRef.current && ws.current?.readyState === WebSocket.OPEN) {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.3,
-          base64: true,
-          skipProcessing: true,
-        });
-        
-        ws.current.send(JSON.stringify({
-          image: photo.base64,
-          driver_id: 1,
-          location: location
-        }));
+      const socket = socketRef.current;
+      if (!cameraRef.current || socket?.readyState !== WebSocket.OPEN || capturingRef.current) return;
+      capturingRef.current = true;
+      try {
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.3, base64: true, skipProcessing: true });
+        if (photo?.base64 && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ image: photo.base64, driver_id: 1, location: locationRef.current ?? {} }));
+        }
+      } catch {
+        setConnection('Camera capture failed');
+      } finally {
+        capturingRef.current = false;
       }
-    }, 500); // 2 FPS for stability
-
+    }, 500);
     return () => clearInterval(interval);
-  }, [location]);
+  }, [permission?.granted]);
 
-  if (hasPermission === null) return <View />;
-  if (hasPermission === false) return <Text>No access to camera</Text>;
-
+  if (!permission) return <View style={styles.center}><Text style={styles.text}>Checking camera permission…</Text></View>;
+  if (!permission.granted) {
+    return <View style={styles.center}><Text style={styles.text}>Camera access is required for detection.</Text><Button title="Grant camera access" onPress={requestPermission} /></View>;
+  }
   return (
-    <View className="flex-1 bg-black">
-      <Camera 
-        ref={cameraRef}
-        className="flex-1"
-        type={Camera.Constants.Type.front}
-      >
-        <View className="flex-1 bg-black/20 justify-between p-6">
-          <View className="flex-row justify-between items-center mt-8">
-            <View className="bg-black/50 px-4 py-2 rounded-full border border-white/20">
-              <Text className="text-white font-bold">DrowsyGuard Pro</Text>
-            </View>
-            <TouchableOpacity className="bg-red-600 p-3 rounded-full">
-              <PhoneCall size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          <View className="items-center">
-            <View className="w-48 h-48 rounded-full border-8 border-white/10 items-center justify-center">
-              <View 
-                className={`w-40 h-40 rounded-full border-4 items-center justify-center ${
-                  results?.alert_stage >= 3 ? 'border-red-500' : results?.alert_stage >= 1 ? 'border-yellow-500' : 'border-green-500'
-                }`}
-              >
-                <Text className="text-white text-5xl font-bold">{results?.fatigue_score || 0}</Text>
-                <Text className="text-white/60 text-xs uppercase tracking-widest font-bold">Fatigue Score</Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="bg-black/60 p-6 rounded-3xl border border-white/10">
-            <View className="flex-row justify-between mb-4">
-              <View>
-                <Text className="text-white/60 text-xs uppercase">EAR</Text>
-                <Text className="text-white text-lg font-bold">{results?.ear || '0.00'}</Text>
-              </View>
-              <View>
-                <Text className="text-white/60 text-xs uppercase">MAR</Text>
-                <Text className="text-white text-lg font-bold">{results?.mar || '0.00'}</Text>
-              </View>
-              <View>
-                <Text className="text-white/60 text-xs uppercase">Eyes Closed</Text>
-                <Text className="text-white text-lg font-bold">{results?.eyes_closed_duration || '0.0'}s</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Camera>
-
-      <AlertOverlay stage={results?.alert_stage || 0} score={results?.fatigue_score || 0} />
+    <View style={styles.container}>
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
+      <View style={styles.header}>
+        <Text style={styles.heading}>DrowsyGuard Pro</Text>
+        <Text style={styles.status}>{connection}</Text>
+      </View>
+      <View style={styles.metrics}>
+        <Text style={styles.score}>{results?.face_detected ? results.fatigue_score : '—'}%</Text>
+        <Text style={styles.text}>{results?.face_detected ? 'Fatigue score' : 'Position your face in view'}</Text>
+        <Text style={styles.text}>EAR: {results?.ear ?? '—'}   MAR: {results?.mar ?? '—'}</Text>
+        <Text style={styles.text}>Eyes closed: {results?.eyes_closed_duration ?? 0}s</Text>
+      </View>
+      <AlertOverlay stage={results?.alert_stage ?? 0} score={results?.fatigue_score ?? 0} />
     </View>
   );
-};
+}
 
-export default LiveDetection;
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000', justifyContent: 'space-between' },
+  center: { flex: 1, backgroundColor: '#111827', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  header: { marginTop: 56, marginHorizontal: 20, padding: 16, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 14 },
+  heading: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  status: { color: '#d1d5db', marginTop: 4 },
+  metrics: { margin: 20, padding: 20, backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 18, alignItems: 'center' },
+  score: { color: '#fff', fontSize: 48, fontWeight: '800' },
+  text: { color: '#fff', textAlign: 'center', marginTop: 8 },
+});

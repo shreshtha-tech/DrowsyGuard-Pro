@@ -4,10 +4,10 @@ from typing import Optional
 class Settings(BaseSettings):
     PROJECT_NAME: str = "DrowsyGuard Pro"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = "yoursecretkey"
+    SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/drowsyguard"
+    DATABASE_URL: str
     
     INFLUXDB_URL: Optional[str] = None
     INFLUXDB_TOKEN: Optional[str] = None
