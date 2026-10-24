@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, History, AlertCircle, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, History, AlertCircle, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -25,7 +25,7 @@ const Sidebar = () => {
             key={item.path}
             to={item.path}
             className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-center transition-colors md:flex-row md:justify-start md:gap-0 md:px-6 md:py-4 md:text-left ${
-              location.pathname === item.path 
+              location.pathname === item.path || (item.path === '/drivers' && location.pathname.startsWith('/drivers/'))
                 ? 'border-b-2 border-indigo-400 bg-gray-700 text-indigo-400 md:border-b-0 md:border-r-4'
                 : 'text-gray-400 hover:bg-gray-700 hover:text-white'
             }`}
@@ -37,10 +37,7 @@ const Sidebar = () => {
       </nav>
       
       <div className="hidden border-t border-gray-700 p-6 md:block">
-        <button className="flex items-center text-gray-400 hover:text-red-400 transition-colors w-full text-left">
-          <LogOut className="w-5 h-5 mr-3" />
-          <span className="font-medium">Sign Out</span>
-        </button>
+        <p className="text-xs leading-relaxed text-gray-500">Prototype dashboard · sample driver data</p>
       </div>
     </aside>
   );

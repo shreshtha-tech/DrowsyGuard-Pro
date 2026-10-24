@@ -14,7 +14,7 @@ DrowsyGuard Pro is a prototype driver drowsiness system. Its API uses MediaPipe 
 1. **Real-time Detection**: Multi-metric analysis including EAR, PERCLOS, and head pose.
 2. **Multi-Stage Alerts**: Progressive alerts from vibration to loud alarms.
 3. **Emergency incidents**: Critical detections can be recorded in the database. SMS and calls are not implemented yet.
-4. **Fleet dashboard prototype**: The web dashboard currently shows sample drivers; it is not connected to live data.
+4. **Fleet dashboard prototype**: Dashboard and Drivers screens use clearly labeled sample data. Incident and trip screens explain that live records are not connected. Display preferences are saved locally in the browser.
 
 ## Getting Started
 

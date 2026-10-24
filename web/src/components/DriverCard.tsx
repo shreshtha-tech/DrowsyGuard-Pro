@@ -1,12 +1,6 @@
-import { MoreVertical, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
-
-interface Driver {
-  id: number;
-  name: string;
-  status: string;
-  score: number;
-  location: string;
-}
+import { ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import type { Driver } from '../data/demoDrivers';
 
 const DriverCard = ({ driver }: { driver: Driver }) => {
   const getStatusColor = (status: string) => {
@@ -28,7 +22,7 @@ const DriverCard = ({ driver }: { driver: Driver }) => {
   };
 
   return (
-    <div className="rounded-xl border border-gray-700 bg-gray-800 p-4 shadow-lg transition-all hover:border-indigo-500/50 sm:p-6">
+    <div className="driver-card rounded-xl border border-gray-700 bg-gray-800 p-4 shadow-lg transition-all hover:border-indigo-500/50 sm:p-6">
       <div className="flex justify-between items-start mb-4">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           <div className="p-2 bg-gray-900 rounded-lg">
@@ -41,9 +35,6 @@ const DriverCard = ({ driver }: { driver: Driver }) => {
             </span>
           </div>
         </div>
-        <button className="text-gray-500 hover:text-white">
-          <MoreVertical className="w-5 h-5" />
-        </button>
       </div>
       
       <div className="space-y-4">
@@ -69,13 +60,10 @@ const DriverCard = ({ driver }: { driver: Driver }) => {
           <span className="min-w-0 break-words text-right font-medium text-gray-300">{driver.location}</span>
         </div>
         
-        <div className="grid grid-cols-2 gap-3 mt-4">
-          <button className="min-h-11 rounded-lg bg-gray-700 py-2 text-sm font-medium transition-colors hover:bg-gray-600">
-            Contact
-          </button>
-          <button className="min-h-11 rounded-lg bg-indigo-600 py-2 text-sm font-medium transition-colors hover:bg-indigo-700">
-            View Live
-          </button>
+        <div className="mt-4">
+          <Link to={`/drivers/${driver.id}`} className="flex min-h-11 items-center justify-center rounded-lg bg-indigo-600 py-2 text-sm font-medium transition-colors hover:bg-indigo-700">
+            View details
+          </Link>
         </div>
       </div>
     </div>
